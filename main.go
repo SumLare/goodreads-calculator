@@ -32,10 +32,12 @@ func main() {
 
 	q := req.URL.Query()
 	key := flag.String("key", "", "")
+	id := flag.String("id", "", "")
 	flag.Parse()
+
 	q.Add("key", *key)
 	q.Add("v", "2")
-	q.Add("id", "50000667")
+	q.Add("id", *id)
 	q.Add("shelf", "to-read")
 	req.URL.RawQuery = q.Encode()
 
