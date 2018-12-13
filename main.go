@@ -10,7 +10,10 @@ import (
 	"os"
 )
 
-const DaysInYear = 365
+const (
+	DaysInYear = 365
+	ApiUrl     = "https://www.goodreads.com/review/list"
+)
 
 type Reviews struct {
 	XMLName xml.Name `xml:"GoodreadsResponse"`
@@ -24,7 +27,7 @@ type Review struct {
 
 func main() {
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", "https://www.goodreads.com/review/list", nil)
+	req, err := http.NewRequest("GET", ApiUrl, nil)
 	if err != nil {
 		log.Print(err)
 		os.Exit(1)
@@ -35,8 +38,8 @@ func main() {
 	id := flag.String("id", "", "")
 	flag.Parse()
 
-	q.Add("key", *key)
 	q.Add("v", "2")
+	q.Add("key", *key)
 	q.Add("id", *id)
 	q.Add("shelf", "to-read")
 	req.URL.RawQuery = q.Encode()
@@ -51,10 +54,11 @@ func main() {
 	if err != nil {
 		fmt.Errorf("Read body: %v", err)
 	}
-	calculate(data)
+	avg := calculate(data)
+	fmt.Printf("Average amount of pages to read every day to finish reading in a year: %d", avg)
 }
 
-func calculate(data []byte) {
+func calculate(data []byte) int {
 	var reviews Reviews
 	err := xml.Unmarshal(data, &reviews)
 	if err != nil {
@@ -66,6 +70,5 @@ func calculate(data []byte) {
 	for _, review := range reviews.Reviews {
 		pages += review.NumPages
 	}
-	avg := pages / DaysInYear
-	fmt.Println(avg)
+	return pages / DaysInYear
 }
